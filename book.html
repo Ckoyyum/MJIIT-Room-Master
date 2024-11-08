@@ -35,15 +35,16 @@
         }
 
         input[type="text"], input[type="date"], input[type="time"], select {
-            width: 100%;
+            width: 100%; /* Ensures full width */
             padding: 10px;
             margin: 8px 0;
             border: 1px solid #ccc;
             border-radius: 4px;
+            box-sizing: border-box; /* Ensures consistent width */
         }
 
         button {
-            width: 100%;
+            width: 100%; /* Ensures full width */
             padding: 10px;
             background: #8B0000;
             color: white;
@@ -53,6 +54,7 @@
             cursor: pointer;
             margin-top: 10px;
             transition: background 0.3s;
+            box-sizing: border-box; /* Ensures consistent width */
         }
 
         button:hover {

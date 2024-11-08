@@ -1,32 +1,60 @@
 <?php
 include 'config.php';
 
+// Get the room ID from the URL
+if (isset($_GET['id'])) {
+    $room_id = $_GET['id'];
+
+    // Fetch current room data
+    $sql = "SELECT * FROM rooms WHERE room_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $room_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $room = $result->fetch_assoc();
+    } else {
+        echo "Room not found.";
+        exit;
+    }
+} else {
+    header("Location: rooms_admin.php");
+    exit;
+}
+
+// Handle form submission for updating the room
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $room_name = $_POST['room_name'];
     $capacity = $_POST['capacity'];
     $equipment = $_POST['equipment'];
 
     // Image upload logic
-    $image = $_FILES['image']['name'];
-    $target_dir = "uploads/";
-    $target_file = $target_dir . basename($image);
+    if (!empty($_FILES['image']['name'])) {
+        $image = $_FILES['image']['name'];
+        $target_dir = "uploads/";
+        $target_file = $target_dir . basename($image);
 
-    // Move the uploaded file to the target directory
-    if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
-        $sql = "INSERT INTO rooms (room_name, capacity, equipment, image) VALUES (?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("siss", $room_name, $capacity, $equipment, $image);
-
-        if ($stmt->execute()) {
-            header("Location: rooms_admin.php?message=Room added successfully");
+        if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
+            $sql = "UPDATE rooms SET room_name = ?, capacity = ?, equipment = ?, image = ? WHERE room_id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("sissi", $room_name, $capacity, $equipment, $image, $room_id);
         } else {
-            echo "Error: " . $stmt->error;
+            echo "Failed to upload image.";
+            exit;
         }
-        $stmt->close();
     } else {
-        echo "Failed to upload image.";
+        $sql = "UPDATE rooms SET room_name = ?, capacity = ?, equipment = ? WHERE room_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sisi", $room_name, $capacity, $equipment, $room_id);
     }
 
+    if ($stmt->execute()) {
+        header("Location: rooms_admin.php?message=Room updated successfully");
+    } else {
+        echo "Error: " . $stmt->error;
+    }
+    $stmt->close();
     $conn->close();
 }
 ?>
@@ -34,18 +62,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Room</title>
+    <title>Update Room</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
-         /* Body styling */
-         body {
+        /* Body styling */
+        body {
             font-family: 'Roboto', Arial, sans-serif;
+            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            background-image: url('bg website.png'); 
+            background-image: url('bg website.png');
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -157,32 +186,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
 
+    <!-- Main Content -->
     <div class="container mt-5">
-        <h3>Add Room</h3>
+        <h3>Update Room</h3>
         <hr>
         <form method="POST" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="room_name" class="form-label">Room Name</label>
-                <input type="text" class="form-control" id="room_name" name="room_name" required>
+                <input type="text" class="form-control" id="room_name" name="room_name" value="<?php echo htmlspecialchars($room['room_name']); ?>" required>
             </div>
             <div class="mb-3">
                 <label for="capacity" class="form-label">Capacity</label>
-                <input type="number" class="form-control" id="capacity" name="capacity" required>
+                <input type="number" class="form-control" id="capacity" name="capacity" value="<?php echo htmlspecialchars($room['capacity']); ?>" required>
             </div>
             <div class="mb-3">
                 <label for="equipment" class="form-label">Equipment</label>
-                <input type="text" class="form-control" id="equipment" name="equipment" required>
+                <input type="text" class="form-control" id="equipment" name="equipment" value="<?php echo htmlspecialchars($room['equipment']); ?>" required>
             </div>
             <div class="mb-3">
                 <label for="image" class="form-label">Room Image</label>
-                <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+                <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                <p class="mt-2">Current image: <?php echo htmlspecialchars($room['image']); ?></p>
             </div>
             <div class="button-group">
-                <button type="submit" class="btn btn-success">Add Room</button>
-                <a href="rooms_admin.php" class="btn btn-back">Cancel</a>
+                <button type="submit" class="btn btn-success">Update Room</button>
+                <a href="rooms_admin.php" class="btn btn-back">Back to Rooms</a>
             </div>
         </form>
     </div>
 </body>
 </html>
-

@@ -31,6 +31,28 @@
             margin-top: 10px;
             font-size: 16px;
         }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #8B0000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #B22222;
+        }
     </style>
 </head>
 <body>
@@ -38,6 +60,10 @@
         <h2>Booking Confirmed!</h2>
         <p>Thank you for booking a room at MJIIT RoomMaster.</p>
         <p>We look forward to your visit!</p>
+        <div class="button-container">
+            <a href="home.html" class="btn">Return to Home</a>
+            <a href="my_bookings.php" class="btn">Check My Bookings</a>
+        </div>
     </div>
 </body>
 </html>
